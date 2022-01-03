@@ -17,7 +17,7 @@ type Response struct {
 	Data    interface{} `json:"data"`
 }
 
-func Success(w http.ResponseWriter, data interface{}, code int) bool {
+func Success(w http.ResponseWriter, data interface{}, code int) *error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	res := Response{
@@ -28,29 +28,26 @@ func Success(w http.ResponseWriter, data interface{}, code int) bool {
 	js, err := json.Marshal(res)
 	if err != nil {
 		fmt.Fprint(w, err)
-		return false
+		return &err
 	}
 	w.Write(js)
-	return true
+	return nil
 }
 
-func NotFound(w http.ResponseWriter, id int, module string, column string) bool {
-	if column == "" {
-		column = "ID"
-	}
+func NotFound(w http.ResponseWriter, id int, module string, column string) *error {
 	return Fail(w, Response{
 		Status:  "Not Found",
 		Message: fmt.Sprintf("%s with %s %d Not Found", module, column, id),
 	}, http.StatusNotFound)
 }
 
-func CantNull(w http.ResponseWriter, input string) bool {
+func CantNull(w http.ResponseWriter, input string) *error {
 	return Fail(w, Response{
 		Status:  "Bad Request",
 		Message: fmt.Sprintf("%s cannot be null", input),
 	}, http.StatusBadRequest)
 }
-func Fail(w http.ResponseWriter, data Response, code int) bool {
+func Fail(w http.ResponseWriter, data Response, code int) *error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	res := Response{
@@ -61,8 +58,8 @@ func Fail(w http.ResponseWriter, data Response, code int) bool {
 	js, err := json.Marshal(res)
 	if err != nil {
 		fmt.Fprint(w, err)
-		return false
+		return &err
 	}
 	w.Write(js)
-	return true
+	return nil
 }
